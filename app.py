@@ -4,7 +4,7 @@ from flask_cors import CORS
 from flask_heroku import Heroku
 from flask_mail import Mail, Message
 # from flask_login import LoginManager, UserMixin
-import config
+# import config
 import os
 
 app = Flask(__name__)
