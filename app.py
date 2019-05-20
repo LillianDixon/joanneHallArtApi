@@ -47,20 +47,20 @@ def index():
     mail.send(msg)
     return jsonify('Message has been sent')
 
-@app.route('/login', methods=['POST'])
-def admin_login():
-    if request.content_type == 'application/json':
-        post_data = request.get_json()
-        email = post_data.get("email")
-        password = post_data.get("password")
-        if password == config.LOGIN_PASSWORD and email == config.LOGIN_EMAIL:
-            # status = True
-            # return jsonify('logged in')
-            return (password)
-        else:
-            # status = False
-            return jsonify('Wrong Credentials')
-    return ("home")
+# @app.route('/login', methods=['POST'])
+# def admin_login():
+#     if request.content_type == 'application/json':
+#         post_data = request.get_json()
+#         email = post_data.get("email")
+#         password = post_data.get("password")
+#         if password == config.LOGIN_PASSWORD and email == config.LOGIN_EMAIL:
+#             # status = True
+#             # return jsonify('logged in')
+#             return (password)
+#         else:
+#             # status = False
+#             return jsonify('Wrong Credentials')
+#     return ("home")
 
 class Current(db.Model):
     __tablename__ = "currentArtwork" 
