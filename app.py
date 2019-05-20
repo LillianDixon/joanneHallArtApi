@@ -3,6 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from flask_heroku import Heroku
 from flask_mail import Mail, Message
+# from flask_login import LoginManager, UserMixin
 import config
 import os
 
@@ -11,34 +12,55 @@ CORS(app)
 
 app.config["DATABASE_URI"] = os.getenv("DATABASE_URL")
 
-app.config['MAIL_SERVER'] = 'smtp.gmail.com'
-app.config['MAIL_PORT'] = 465
-app.config['MAIL_USE_TLS'] = False
-app.config['MAIL_USE_SSL'] = True
-app.config['MAIL_USERNAME'] = os.getenv.MAIL_USERNAME
-app.config['MAIL_PASSWORD'] = os.getenv.MAIL_PASSWORD
-app.config['MAIL_DEFAULT_SENDER'] = 'email@joannehallart.com'
-app.config['MAIL_MAX_EMAILS'] = None
-app.config['MAIL_ASCII_ATTACHMENTS'] = False
+app.config.update(
+    MAIL_SERVER = 'smtp.gmail.com',
+    MAIL_PORT = 465,
+    MAIL_USE_SSL = True,
+    MAIL_USERNAME = os.environ.get('MAIL_USERNAME'),
+    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD'),
+    # MAIL_USERNAME = config.MAIL_USERNAME,
+    # MAIL_PASSWORD = config.MAIL_PASSWORD,
+    MAIL_DEFAULT_SENDER = 'myemail@testemail.com'
+)
 
 
 heroku = Heroku(app)
 db = SQLAlchemy(app)
 mail = Mail(app)
+# login_manager = LoginManager()
+# login_manager.init_app(app)
 
-@app.route('/email', methods=['POST'])
+@app.route("/email", methods=['POST'])
 def index():
     if request.content_type == 'application/json':
         get_data = request.get_json()
         name = get_data.get('name')
         sender = get_data.get('email')
-        recipients = [config.MAIL_RECIPIENT]
+        recipients = [os.environ.get('MAIL_USERNAME')]
+        # recipients = [config.MAIL_USERNAME]
+        headers = [name, sender] + recipients
         subject = get_data.get('subject')
-        body = get_data.get('name', 'message')
-    msg = Message(subject, recipients, sender, body)
+        message = get_data.get('message')
+        body = message + "\n\n" + name
+    msg = Message(subject, headers, body)
     print(Message)
     mail.send(msg)
     return jsonify('Message has been sent')
+
+@app.route('/login', methods=['POST'])
+def admin_login():
+    if request.content_type == 'application/json':
+        post_data = request.get_json()
+        email = post_data.get("email")
+        password = post_data.get("password")
+        if password == config.LOGIN_PASSWORD and email == config.LOGIN_EMAIL:
+            # status = True
+            # return jsonify('logged in')
+            return (password)
+        else:
+            # status = False
+            return jsonify('Wrong Credentials')
+    return ("home")
 
 class Current(db.Model):
     __tablename__ = "currentArtwork" 
@@ -66,7 +88,7 @@ def current_input():
         post_data = request.get_json()
         title = post_data.get("title")
         description = post_data.get("description")
-        img_url = post_data.get("img_url") #figure out what the public ID is, figure out how it is being store on cloudinary the find the public ID #public ID is the info I need to grab the image
+        img_url = post_data.get("img_url") 
         reg = Current(title, description, img_url)
         db.session.add(reg)
         db.session.commit()
@@ -171,13 +193,6 @@ def past_update(id):
         db.session.commit()
         return jsonify("Completed Update")
     return jsonify("Failed Update")
-
-# @app.route('/email')
-# def index():
-#     msg = Message('subject',
-#                     sender='email',
-#                     recipients=["dixon.lillian92@gmail.com"],
-#                     body="message")
 
 if __name__ == "__main__":
     app.debug = True
